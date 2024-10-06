@@ -3,14 +3,17 @@ import * as THREE from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+import LoadModel from '../functions/LoadModel'
+import PickPosition from '../functions/PickPosition'
+
 const Planets = () => {
     const space = [{ name: 'space', path: '/model3D/space.glb', position: [-500, -150, 50], scale: 1000 }]
     const gigantesGaseosos = [
         { name: '51_pegasi_b', path: '/model3D/JupiterCaliente/51_pegasi_b.glb', position: [-215, 102, -608], scale: 8 },
-        { name: '55_Cancri_e', path: '/model3D/JupiterCaliente/55_Cancri_e.glb', position: [-455, 216, -677], scale: 0.01 },
-        { name: 'corot_7b_fiery', path: '/model3D/JupiterCaliente/corot_7b_fiery.glb', position: [136, -231, -159], scale: 0.005 },
+        { name: '55_Cancri_e', path: '/model3D/JupiterCaliente/55_Cancri_e.glb', position: [-455, 216, -677], scale: 0.05 },
+        { name: 'corot_7b', path: '/model3D/JupiterCaliente/corot_7b_fiery.glb', position: [136, -131, -159], scale: 0.005 },
         { name: 'Kepler-7b', path: '/model3D/JupiterCaliente/Kepler-7b.glb', position: [2, 111, -66], scale: 5 },
-        { name: 'WASP-12b', path: '/model3D/JupiterCaliente/WASP-12b.glb', position: [-95, -175, -599], scale: 0.01 },
+        { name: 'WASP-12b', path: '/model3D/JupiterCaliente/WASP-12b.glb', position: [-95, -175, -599], scale: 0.03 },
     ];
     
     const neptunosCalientes = [
@@ -31,14 +34,14 @@ const Planets = () => {
     const planets = {};
 
     useEffect(() => {
-        const textureLoader = new THREE.TextureLoader(); 
         const loader = new GLTFLoader();
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 5000);
         const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        const picker = new PickPosition(renderer.domElement);
 
-        camera.position.set(440, 142, 174);
+        camera.position.set(450, 142, 174);
         camera.lookAt(new THREE.Vector3(0, 0, 0)); // La cámara apunta al origen (0, 0, 0)
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 2); // Luz ambiental con mayor intensidad
@@ -48,31 +51,11 @@ const Planets = () => {
         pointLight.position.set(0, 5, 10);
         scene.add(pointLight);
 
-        const loadModels = (loader, models, scene) => {
-            models.forEach(({ name, path, position, scale }) => {
-                loader.load(path, (gltf) => {
-                    const planet = gltf.scene;
-                    planet.name = name; 
-                    planet.position.set(...position);
-                    planet.scale.set(scale, scale, scale); 
-                    scene.add(planet);
-                    planets[name] = planet;
-                }, undefined, (error) => {
-                    console.error(`Error loading ${path}:`, error);
-                });
-            });
-        };
 
-        loadModels(loader, space, scene);
-        loadModels(loader, gigantesGaseosos, scene);
-        loadModels(loader, neptunosCalientes, scene);
-        loadModels(loader, superTierras, scene);
-
-        /*
-        textureLoader.load('/model3D/bg_game.jpg', (texture) => {
-            scene.background = texture; 
-        });
-*/
+        LoadModel(loader, space, scene, planets);
+        LoadModel(loader, gigantesGaseosos, scene, planets);
+        LoadModel(loader, neptunosCalientes, scene, planets);
+        LoadModel(loader, superTierras, scene, planets);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
@@ -81,8 +64,10 @@ const Planets = () => {
 
         const animate = () => {
             if (planets['space']) {
-                planets['space'].rotation.y += 0.001; // Rota el objeto 'space'
+                planets['space'].rotation.y += 0.0005; // Rota el objeto 'space'
             }
+
+            picker.pick(scene, camera);
 
             requestAnimationFrame(animate);
             controls.update();
@@ -94,7 +79,8 @@ const Planets = () => {
         return () => {
             renderer.dispose();
         };
-    }, []);
+    },
+);
 
   return (
     <div className="home-container">
