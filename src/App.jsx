@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import './index.css';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import process from 'process';
+import Game from './components/game/game';
 
 const Home = () => {
     return (
@@ -167,7 +168,7 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/telescope" element={<Telescope />} />
-                <Route path="/exoplanets" element={isLoggedIn ? <Exoplanets /> : <Navigate to="/" />} />
+                <Route path="/exoplanets" element={isLoggedIn ? <Game /> : <Navigate to="/" />} />
                 <Route path="/about" element={isLoggedIn ? <About /> : <Navigate to="/" />} />
             </Routes>
             {!isLoggedIn && <button onClick={handleLogin}>Iniciar Sesión</button>}
